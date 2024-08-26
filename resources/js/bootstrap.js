@@ -1,4 +1,20 @@
 import _ from 'lodash';
+import Echo from 'laravel-echo';
+window.Pusher = require('pusher-js');
+
+window.Echo = new Echo({
+    broadcaster: 'pusher',
+    key: process.env.MIX_PUSHER_APP_KEY,
+    cluster: process.env.MIX_PUSHER_APP_CLUSTER,
+    forceTLS: true
+});
+
+Echo.channel('notifications')
+    .listen('AdminNotification', (event) => {
+        console.log('New notification:', event.message);
+        // Optionally, update the view or handle the notification
+    });
+
 window._ = _;
 
 /**

@@ -69,16 +69,34 @@ class UserController extends Controller
 
     // Handle the password reset
     public function resetPassword(Request $request, User $user)
-    {
-        $request->validate([
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+{
+    // Validate to ensure no other input is required
+    $request->validate([
+        'password' => 'required|string|min:8|confirmed', // This validation might be redundant as the password is fixed
+    ]);
 
-        $user->password = Hash::make($request->password); // Use Hash::make for security
-        $user->save();
+    // Set the password to '12345678'
+    $user->password = Hash::make('12345678');
+    $user->save();
 
-        return redirect()->route('admin.manage-users')->with('success', 'Password reset successfully.');
-    }
+    return redirect()->route('admin.manage-users')->with('success', 'Password reset successfully.');
+}
+    public function updatePassword(Request $request)
+{
+    $request->validate([
+        'user_id' => 'required|exists:users,id',
+        'password' => 'required|confirmed|min:8',
+    ]);
+
+    $user = User::find($request->user_id);
+    $user->password = bcrypt($request->password);
+    $user->save();
+
+    return redirect()->back()->with('status', 'Password updated successfully.');
+}
+
+
+    
     public function index(Request $request)
 {
     $query = User::query();

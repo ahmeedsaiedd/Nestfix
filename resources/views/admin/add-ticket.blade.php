@@ -2,7 +2,19 @@
 
 @section('content')
     <div class="container mx-auto p-2 lg:p-12">
-        <form action="{{ route('ticket.store') }}" method="POST" enctype="multipart/form-data">
+        <!-- Display Validation Errors -->
+        @if ($errors->any())
+            <div class="bg-red-100 text-red-600 p-4 rounded-lg mb-4">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <!-- Form Submission -->
+        <form action="{{ route('ticket.store') }}" method="POST" enctype="multipart/form-data" id="ticketForm">
             @csrf
             <!-- Grid Container -->
             <div class="grid grid-cols-1 my-6 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -54,6 +66,11 @@
                 </div>
 
                 <!-- Assign To Field -->
+                @php
+                $user = auth()->user();
+            @endphp
+            
+            @if($user && ($user->role == 'admin' || $user->role == 'moderator'))
                 <div class="mb-6">
                     <label for="assigned_to" class="block text-sm font-semibold text-gray-700">Assign To</label>
                     <select id="assigned_to" name="assigned_to"
@@ -64,6 +81,8 @@
                         <option value="Wakty Team">Wakty Team</option>
                     </select>
                 </div>
+            @endif
+            
 
                 <!-- Priority Field -->
                 <div class="mb-6">
@@ -86,10 +105,9 @@
                 </div>
             </div>
 
+            <!-- Submit Button with Logging -->
             <div class="mt-6">
-                <button type="submit" class="submit-button">
-                    Add Ticket
-                </button>
+                <button type="submit" class="submit-button" onclick="logFormSubmission()">Add Ticket</button>
             </div>
 
             <!-- SweetAlert2 for Success Messages -->
@@ -105,13 +123,27 @@
                 </script>
             @endif
 
-            <!-- JavaScript to Toggle New Category Field -->
+            <!-- JavaScript for Logging and Debugging -->
             <script>
                 function toggleNewCategoryField() {
                     const issueCategory = document.getElementById('issue_category').value;
                     const newCategoryField = document.getElementById('new_category');
                     newCategoryField.classList.toggle('hidden', issueCategory !== 'others');
                 }
+
+                function logFormSubmission() {
+                    console.log("Form submitted");
+                    console.log("Trace ID: " + document.getElementById('trace_id').value);
+                    console.log("Provider Name: " + document.getElementById('provider_name').value);
+                    console.log("Issue Category: " + document.getElementById('issue_category').value);
+                    console.log("Issue Description: " + document.getElementById('issue_description').value);
+                    console.log("Assigned To: " + document.getElementById('assigned_to').value);
+                    console.log("Priority: " + document.getElementById('priority').value);
+                }
+
+                document.getElementById('ticketForm').addEventListener('submit', function (event) {
+                    console.log("Form is being submitted...");
+                });
             </script>
         </form>
     </div>

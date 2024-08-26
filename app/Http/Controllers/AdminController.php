@@ -8,6 +8,13 @@ class AdminController extends Controller
 {
     public function index()
     {
-        return view('admin.home'); // Ensure this view file exists
+        return view('admin.home');
+    }
+
+    public function showNotifications()
+    {
+        $notifications = session()->get('notifications', []);
+        return view('admin.notification', ['notifications' => $notifications]);
     }
 }
+

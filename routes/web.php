@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExportController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\HomeController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\InboxController;
 use App\Http\Controllers\ModeratorController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OperatorController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UserController;
 
@@ -24,17 +26,19 @@ use App\Http\Controllers\UserController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->get('/
-dashboard', function () {
+', function () {
     return view('dashboard');
 })->name('dashboard');
 
 route::get('redirect', [HomeController::class, 'redirect']);
 
-Route::get('/admin/home', [AdminController::class, 'index'])->name('admin.home');
+Route::get('/home', [AdminController::class, 'index'])->name('admin.home');
+Route::get('/home', [TicketController::class, 'dashboard'])->name('admin.home');
+
 
 Route::get('/moderator/home', [ModeratorController::class, 'index'])->name('moderator.home');
 
@@ -43,10 +47,12 @@ Route::get('/operator/home', [OperatorController::class, 'index'])->name('operat
 // routes/web.php
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/inbox', [InboxController::class, 'index'])->name('inbox');
-Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+// Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
 
 // Route for adding a new ticket
 Route::get('/add-ticket', [TicketController::class, 'create'])->name('add-ticket');
+
+Route::post('/ticket/store', [TicketController::class, 'store'])->name('ticket.store');
 
 // Route for displaying all tickets
 Route::get('/all-tickets', [TicketController::class, 'all'])->name('all-tickets');
@@ -70,10 +76,17 @@ Route::put('/users/{user}/change-role', [UserController::class, 'changeRole'])->
 Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
 // Display the reset password form
+// Route to show the reset password form
 Route::get('/users/{user}/reset-password', [UserController::class, 'showResetPasswordForm'])->name('users.resetPasswordForm');
 
-// Handle the password reset
+// Route to handle the password reset
 Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.resetPassword');
+
+// Route to handle the password reset
+Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.resetPassword');
+
+Route::post('/users/update-password', [UserController::class, 'updatePassword'])->name('users.updatePassword');
+Route::post('/users/update-password', [UserController::class, 'updatePassword'])->name('users.updatePassword');
 
 // Other routes remain unchanged
 // web.php
@@ -102,4 +115,30 @@ Route::get('/all-tickets', [TicketController::class, 'index'])->name('all-ticket
 
 // routes/web.php or routes/api.php
 Route::patch('/tickets/{id}', [TicketController::class, 'update'])->name('tickets.update');
+
+Route::get('/dashboard', [TicketController::class, 'dashboard'])->name('dashboard');
+
+Route::get('/export-tickets', [TicketController::class, 'export'])->name('tickets.export');
+// routes/web.php
+Route::get('/tickets/export', [ExportController::class, 'exportTickets'])->name('tickets.export');
+
+Route::get('/profile', function () {
+    return view('admin/profile');
+})->name('profile');
+
+Route::get('/admin/profile', [AdminController::class, 'profile'])->name('admin.profile');
+Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+Route::put('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.updatePhoto');
+
+
+Route::get('/notifications', [AdminController::class, 'showNotifications'])->name('notifications');
+
+// In web.php
+Route::post('/password/verify', [AdminController::class, 'verifyPassword'])->name('password.verify');
+
+// return redirect()->route('admin.notification')->with('admin.notification', session('admin.notification'));
+
+// Route::get('/notify',[\app\http\Controllers\HomeController::class,'notify']);
+
 

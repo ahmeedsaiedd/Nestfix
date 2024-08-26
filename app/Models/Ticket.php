@@ -10,9 +10,16 @@ class Ticket extends Model
 {
     // Columns that can be mass-assigned
     protected $fillable = [
-        'trace_id', 'comment', 'provider_name', 'issue_category', 'issue_description', 'assigned_to', 'priority',
-        'status', 'attachment', 'created_at', 'closed_at'
+        'trace_id',
+        'provider_name',
+        'issue_category',
+        'issue_description',
+        'status',
+        'assigned_to',
+        'priority',
+        'attachments'
     ];
+    
 
     // Cast the date fields to Carbon instances
     protected $dates = ['created_at', 'closed_at'];

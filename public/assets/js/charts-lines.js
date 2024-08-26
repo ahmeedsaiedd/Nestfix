@@ -1,6 +1,5 @@
-/**
- * For usage, visit Chart.js docs https://www.chartjs.org/docs/latest/
- */
+// Line Chart
+const lineCtx = document.getElementById('line').getContext('2d');
 const lineConfig = {
   type: 'line',
   data: {
@@ -8,10 +7,6 @@ const lineConfig = {
     datasets: [
       {
         label: 'Organic',
-        /**
-         * These colors come from Tailwind CSS palette
-         * https://tailwindcss.com/docs/customizing-colors/#default-color-palette
-         */
         backgroundColor: '#0694a2',
         borderColor: '#0694a2',
         data: [43, 48, 40, 54, 67, 73, 70],
@@ -20,10 +15,6 @@ const lineConfig = {
       {
         label: 'Paid',
         fill: false,
-        /**
-         * These colors come from Tailwind CSS palette
-         * https://tailwindcss.com/docs/customizing-colors/#default-color-palette
-         */
         backgroundColor: '#7e3af2',
         borderColor: '#7e3af2',
         data: [24, 50, 64, 74, 52, 51, 65],
@@ -32,10 +23,6 @@ const lineConfig = {
   },
   options: {
     responsive: true,
-    /**
-     * Default legends are ugly and impossible to style.
-     * See examples in charts.html to add your own legends
-     *  */
     legend: {
       display: false,
     },
@@ -50,22 +37,19 @@ const lineConfig = {
     scales: {
       x: {
         display: true,
-        scaleLabel: {
+        title: {
           display: true,
-          labelString: 'Month',
+          text: 'Month',
         },
       },
       y: {
         display: true,
-        scaleLabel: {
+        title: {
           display: true,
-          labelString: 'Value',
+          text: 'Value',
         },
       },
     },
   },
-}
-
-// change this to the id of your chart element in HMTL
-const lineCtx = document.getElementById('line')
-window.myLine = new Chart(lineCtx, lineConfig)
+};
+new Chart(lineCtx, lineConfig);

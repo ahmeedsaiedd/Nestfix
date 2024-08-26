@@ -12,21 +12,19 @@ return new class extends Migration
      * @return void
      */
     public function up()
-    {
-        Schema::table('tickets', function (Blueprint $table) {
-            //
-        });
-    }
+{
+    Schema::table('tickets', function (Blueprint $table) {
+        $table->string('assigned_to')->nullable()->after('status'); // Add this field
+        $table->timestamp('closed_at')->nullable()->after('assigned_to'); // Add closed_at field
+    });
+}
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
-    {
-        Schema::table('tickets', function (Blueprint $table) {
-            //
-        });
-    }
+public function down()
+{
+    Schema::table('tickets', function (Blueprint $table) {
+        $table->dropColumn('assigned_to');
+        $table->dropColumn('closed_at');
+    });
+}
+
 };

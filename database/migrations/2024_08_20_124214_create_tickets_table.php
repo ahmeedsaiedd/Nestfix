@@ -16,7 +16,7 @@ class CreateTicketsTable extends Migration
             $table->text('issue_description');
             $table->string('assigned_to');
             $table->string('priority');
-            $table->string('status');
+            $table->string('status')->nullable();
             $table->text('attachment')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('closed_at')->nullable();

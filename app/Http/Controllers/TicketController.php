@@ -32,46 +32,70 @@ class TicketController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Validate the request
+        $request->validate([
             'trace_id' => 'required|string',
             'provider_name' => 'required|string',
             'issue_category' => 'required|string',
             'issue_description' => 'required|string',
             'assigned_to' => 'required|string',
-            'priority' => 'required|string',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,mp4,avi|max:20480', // Validate files
+            'status' => 'nullable|string',
+            'priority' => 'nullable|string',
+            'attachments' => 'nullable|array',
+            // 'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'new_category' => 'nullable|string'
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        // Store the ticket
-        $ticket = Ticket::create($request->except('attachments'));
-
         // Handle file uploads
+        $attachments = [];
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
-                $path = $file->store('attachments', 'public'); // Store files in the public/attachments directory
-
-                // Save attachment paths to the database
-                TicketAttachment::create([
-                    'ticket_id' => $ticket->id,
-                    'file_path' => $path,
-                ]);
+                $path = $file->store('attachments', 'public');
+                $attachments[] = $path;
             }
         }
 
-        return redirect()->route('add-ticket')->with('success', 'Ticket added successfully!');
-    }
-    public function index()
-    {
-        // Fetch all tickets
-        $tickets = Ticket::all();
 
-        // Pass tickets to the view
-        return view('admin/all-tickets', compact('tickets'));
+        // Create a new ticket
+        Ticket::create([
+            'trace_id' => $request->trace_id,
+            'provider_name' => $request->provider_name,
+            'issue_category' => $request->issue_category,
+            'issue_description' => $request->issue_description,
+            'assigned_to' => $request->assigned_to,
+            'status' => $request->status ?? 'open',
+            'priority' => $request->priority ?? 'medium',
+            'attachments' => !empty($attachments) ? json_encode($attachments) : null
+        ]);
+
+        return redirect()->back()->with('success', 'Ticket created successfully!');
     }
+
+
+
+    public function index(Request $request)
+    {
+        $query = Ticket::query();
+
+        if ($request->filled('trace_id')) {
+            $query->where('trace_id', 'like', '%' . $request->input('trace_id') . '%');
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('sort')) {
+            $sort = $request->input('sort') === 'newest' ? 'desc' : 'asc';
+            $query->orderBy('created_at', $sort);
+        }
+
+        $tickets = $query->paginate(15);
+
+        return view('admin.all-tickets', compact('tickets'));
+    }
+
     public function updateStatus(Request $request)
 {
     try {
@@ -81,27 +105,58 @@ class TicketController extends Controller
             'comment' => 'nullable|string'
         ]);
 
+        // Find the ticket
         $ticket = Ticket::find($request->ticket_id);
         if (!$ticket) {
             return response()->json(['message' => 'Ticket not found'], 404);
         }
 
+        // Store the previous status for logging purposes
+        $previousStatus = $ticket->status;
+
+        // Update the ticket's status and comment
         $ticket->status = $request->status;
         $ticket->comment = $request->comment;
 
+        // Set closed_at if the status is "closed"
         if ($request->status === 'closed') {
             $ticket->closed_at = now();
         } else {
             $ticket->closed_at = null;
         }
 
+        // Save the ticket
         $ticket->save();
+
+        // Log the status change notification
+        $notification = [
+            'message' => auth()->user()->name . ' changed the status from ' . $previousStatus . ' to ' . $ticket->status,
+            'type' => 'status_change',
+            'user' => auth()->user()->name,
+            'ticket_id' => $ticket->id,
+            'created_at' => now()
+        ];
+        session()->push('notifications', $notification);
+        session()->put('notifications', [
+    [
+        'message' => 'Test notification message',
+        'type' => 'status_change',
+        'user' => 'Test User',
+        'ticket_id' => 1,
+        'created_at' => now()
+    ]
+]);
+
 
         return response()->json(['message' => 'Status updated successfully']);
     } catch (\Exception $e) {
         return response()->json(['message' => 'Server error', 'error' => $e->getMessage()], 500);
+
+            return response()->json(['message' => 'Status updated successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Server error', 'error' => $e->getMessage()], 500);
+        }
     }
-}
 
 
 
@@ -125,8 +180,11 @@ class TicketController extends Controller
         // Validate incoming request
         $request->validate([
             'status' => 'required|string',
+            'assigned_to' => 'nullable|string', // Validation rule for assignee
+            'priority' => 'nullable|string', // Validation rule for priority
             'comment' => 'nullable|string',
         ]);
+
 
         // Find the ticket by ID
         $ticket = Ticket::find($id);
@@ -136,6 +194,7 @@ class TicketController extends Controller
 
         // Update the ticket with new data
         $ticket->status = $request->input('status');
+        $ticket->assigned_to = $request->input('assigned_to'); // Update the assigned_to field
         $ticket->comment = $request->input('comment');
 
         // Optionally update closed_at based on status
@@ -147,5 +206,27 @@ class TicketController extends Controller
 
         // Redirect or return a response
         return redirect()->route('all-tickets')->with('success', 'Ticket updated successfully');
+    }
+    public function dashboard()
+    {
+        // Get the total number of tickets
+        $ticketCount = Ticket::count();
+
+        // Get the total number of solved tickets
+        $solvedTicketsCount = Ticket::where('status', 'closed')->count();
+
+        // Get the total number of active tickets
+        $activeTicketsCount = Ticket::where('status', '<>', 'closed')->count();
+
+        // Get the total number of tickets with 'in progress' status
+        $inProgressTicketsCount = Ticket::where('status', 'in progress')->count();
+
+        // Pass counts to the view
+        return view('admin.home', [
+            'ticketCount' => $ticketCount,
+            'solvedTicketsCount' => $solvedTicketsCount,
+            'activeTicketsCount' => $activeTicketsCount,
+            'inProgressTicketsCount' => $inProgressTicketsCount,
+        ]);
     }
 }

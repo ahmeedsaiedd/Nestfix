@@ -1,8 +1,6 @@
 @extends('layouts.master')
 
 @section('content')
-    
-
     <div class="flex items-center justify-center min-h-screen bg-gray-100">
         <div class="form-container">
             <x-validation-errors class="mb-4" />
@@ -55,15 +53,21 @@
                         </select>
                         <p class="text-sm text-gray-500 mt-1">Select the role that this user will have.</p>
                     </div>
+
+                    <!-- Admin Password Input -->
+                    <div>
+                        <x-label for="admin_password" value="{{ __('Admin Password') }}" />
+                        <x-input id="admin_password" class="block mt-1 w-full"
+                            type="password" name="admin_password" required
+                            autocomplete="current-password" />
+                        <p class="text-sm text-gray-500 mt-1">Please enter your admin password to confirm this action.</p>
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-between mt-6">
-                    
-
                     <x-button class="bg-blue-600 hover:bg-green-700 focus:ring-green-500 transition duration-150 ease-in-out">
                         {{ __('Create User') }}
                     </x-button>
-                    
                 </div>
             </form>
         </div>
