@@ -1,7 +1,7 @@
 @include('layouts.head')
 
 <!DOCTYPE html>
-<html :class="{ 'theme-dark': dark }" x-data="data()" lang="en">
+{{-- <html :class="{ 'theme-dark': dark }" x-data="data()" lang="en"> --}}
 
 <head>
     <meta charset="UTF-8" />

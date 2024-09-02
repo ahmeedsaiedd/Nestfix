@@ -3,10 +3,12 @@
 @section('content')
     <div class="flex items-center justify-center min-h-screen bg-gray-100">
         <div class="form-container">
-            <x-validation-errors class="mb-4" />
-
             <form method="POST" action="{{ route('users.store') }}">
+
                 @csrf
+
+                <!-- Display validation errors -->
+                <x-validation-errors class="mb-4" />
 
                 <div class="space-y-6">
                     <!-- Name Input -->
@@ -55,13 +57,13 @@
                     </div>
 
                     <!-- Admin Password Input -->
-                    <div>
+                    {{-- <div>
                         <x-label for="admin_password" value="{{ __('Admin Password') }}" />
                         <x-input id="admin_password" class="block mt-1 w-full"
                             type="password" name="admin_password" required
                             autocomplete="current-password" />
                         <p class="text-sm text-gray-500 mt-1">Please enter your admin password to confirm this action.</p>
-                    </div>
+                    </div> --}}
                 </div>
 
                 <div class="flex items-center justify-between mt-6">

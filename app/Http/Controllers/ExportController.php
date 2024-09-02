@@ -14,6 +14,10 @@ class ExportController extends Controller
 
         $response = new StreamedResponse(function() use ($tickets) {
             $handle = fopen('php://output', 'w+');
+            
+            // Output UTF-8 BOM for Excel compatibility
+            fwrite($handle, "\xEF\xBB\xBF");
+
             // Add CSV headers
             fputcsv($handle, [
                 'Ticket ID',
@@ -29,6 +33,7 @@ class ExportController extends Controller
                 'Closed At',
                 'Comment'
             ]);
+
             // Add CSV data
             foreach ($tickets as $ticket) {
                 fputcsv($handle, [
@@ -46,10 +51,11 @@ class ExportController extends Controller
                     $ticket->comment
                 ]);
             }
+
             fclose($handle);
         });
 
-        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
         $response->headers->set('Content-Disposition', 'attachment; filename="tickets.csv"');
 
         return $response;

@@ -239,6 +239,8 @@
         <div class="flex flex-col flex-1 w-full">
             @include('layouts.header')
             @yield('content')
+            
+
         </div>
     </div>
     @include('layouts.script')

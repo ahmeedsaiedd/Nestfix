@@ -13,10 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('tickets', function (Blueprint $table) {
-            $table->json('attachments')->nullable(); // Adding the attachments column as a JSON type
+        Schema::create('statuses', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->timestamps();
         });
     }
+    
 
     /**
      * Reverse the migrations.
@@ -25,8 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('tickets', function (Blueprint $table) {
-            $table->dropColumn('attachments');
-        });
+        Schema::dropIfExists('statuses');
     }
 };

@@ -1,3 +1,7 @@
+    <head>
+    <link rel="icon" href="{{ asset('assets/favicon.png') }}" type="image/png" />
+
+    </head>
     <x-guest-layout>
         <x-authentication-card>
             <x-slot name="logo">
@@ -18,13 +22,19 @@
                 @csrf
 
                 <div class="flex flex-col md:flex-row">
-                    <!-- Image Section -->
-                    <div class="md:w-1/2 h-32 md:h-auto">
-                        <img aria-hidden="true" class="object-cover w-full h-full dark:hidden"
-                            src="../assets/img/login.jpg" alt="Office" />
-                        <img aria-hidden="true" class="hidden object-cover w-full h-full dark:block"
-                            src="../assets/img/login.jpg" alt="Office" />
-                    </div>
+                    
+                  <!-- Image Section -->
+                  <div class="flex justify-center items-center md:w-1/2 h-32 md:h-auto">
+                    <!-- Light Mode Image -->
+                    <img aria-hidden="true" class="object-cover w-30 h-12 dark:hidden"
+                         src="{{ asset('assets/EBE_LOGO.png') }}" alt="NestFix Logo">
+                    
+                    <!-- Dark Mode Image -->
+                    <img aria-hidden="true" class="hidden object-cover w-30 h-12 dark:block"
+                         src="{{ asset('assets/EBE_LOGO.png') }}" alt="NestFix Logo">
+                </div>
+                
+
 
                     <!-- Form Section -->
                     <div class="flex-1 p-6 sm:p-12 md:w-1/2">

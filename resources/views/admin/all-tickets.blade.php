@@ -1,155 +1,153 @@
 @extends('layouts.master')
 
 @section('content')
-    <div class="flex justify-between items-center mb-4">
-        <!-- Search by Trace ID -->
-    </div>
-    <div class="overflow-x-auto ml-auto mx-2 mt-4">
-        <div class="min-w-full max-w-full flex flex-col items-end ml-4">
-            <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-gray-800 text-black">
-                <table class="w-full text-sm text-left text-black divide-y divide-gray-600">
-                    <thead class="bg-gray-900 text-xs text-black uppercase tracking-wider">
-                        <tr>
-                            <!-- Search by Trace ID -->
-                            <form id="filter-form" method="GET" action="{{ route('all-tickets') }}" class="flex space-x-2">
-                                <!-- Search by Trace ID -->
-                                <input type="text" name="trace_id" placeholder="Search by Trace ID"
-                                    value="{{ request('trace_id') }}"
-                                    class="border border-gray-600 bg-gray-700 text-black rounded-lg px-4 py-2"
-                                    oninput="this.form.submit()">
+    <div class="w-full overflow-hidden rounded-lg shadow-xs">
 
-                                <!-- Filter by Status -->
-                                <select name="status"
-                                    class="border border-gray-600 bg-gray-700 text-black rounded-lg px-4 py-2"
-                                    onchange="this.form.submit()">
-                                    <option value="">All Statuses</option>
-                                    <option value="open" {{ request('status') === 'open' ? 'selected' : '' }}>Open
-                                    </option>
-                                    <option value="in progress" {{ request('status') === 'in progress' ? 'selected' : '' }}>
-                                        In Progress</option>
-                                    <option value="solved" {{ request('status') === 'solved' ? 'selected' : '' }}>Solved
-                                    </option>
-                                    <option value="done" {{ request('status') === 'done' ? 'selected' : '' }}>Done
-                                    </option>
-                                    <option value="closed" {{ request('status') === 'closed' ? 'selected' : '' }}>Closed
-                                    </option>
-                                </select>
+        <!-- Search and Filter Form -->
+        <div class="p-4 flex items-center">
+            <form method="GET" action="{{ route('all-tickets') }}" class="flex space-x-4 mb-4">
+                <input type="text" name="trace_id" id="trace_id" value="{{ request('trace_id') }}"
+                    placeholder="Search by Trace ID..." class="px-4 py-2 border border-gray-300 rounded-lg w-1/3">
+        
+                <select name="status" id="status"
+                    class="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Statuses</option>
+                    @foreach ($statuses as $status)
+                        <option value="{{ $status->name }}" {{ request('status') == $status->name ? 'selected' : '' }}>
+                            {{ ucfirst($status->name) }}
+                        </option>
+                    @endforeach
+                </select>
+        
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Filter</button>
+                <button type="button" class="px-4 py-2 bg-blue-300 text-black rounded-lg"
+                    onclick="window.location='{{ route('all-tickets') }}';">Reset</button>
+            </form>
+        
+            <!-- Export Form, pushed to the right -->
+            <div class="ml-auto">
+                <form method="GET" action="{{ route('exportfilter') }}" class="flex space-x-4 items-center">
+                    @if ($statuses->isEmpty())
+                        <p class="text-red-500 font-semibold">No data to export</p>
+                    @else
+                        <select name="status" id="export_status"
+                            class="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Statuses</option>
+                            @foreach ($statuses as $status)
+                                <option value="{{ $status->name }}">{{ ucfirst($status->name) }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit"
+                            class="px-4 py-2 bg-blue-700 text-black rounded-lg shadow-lg hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Export CSV
+                        </button>
+                    @endif
+                </form>
+            </div>
+        </div>
+        
 
-                                <!-- Sort by Date -->
-                                <select name="sort"
-                                    class="border border-gray-600 bg-gray-700 text-black rounded-lg px-4 py-2"
-                                    onchange="this.form.submit()">
-                                    <option value="newest" {{ request('sort') === 'newest' ? 'selected' : '' }}>Newest First
-                                    </option>
-                                    <option value="oldest" {{ request('sort') === 'oldest' ? 'selected' : '' }}>Oldest First
-                                    </option>
-                                </select>
-                            </form>
+        <!-- Table -->
+        <div class="w-full overflow-x-auto">
+            <table class="w-full whitespace-no-wrap">
+                <thead>
+                    <tr class="text-xs font-semibold tracking-wide text-center text-gray-500 uppercase border-b bg-gray-50">
+                        <th class="px-4 py-3">Created By</th>
+                        <th class="px-4 py-3">Ticket ID</th>
+                        <th class="px-4 py-3">Trace ID</th>
+                        <th class="px-4 py-3">Provider Name</th>
+                        <th class="px-4 py-3">Issue Category</th>
+                        <th class="px-4 py-3">Issue Description</th>
+                        <th class="px-4 py-3">Assigned To</th>
+                        <th class="px-4 py-3">Priority</th>
+                        <th class="px-4 py-3">Status</th>
+                        <th class="px-4 py-3">Test</th>
+                        <th class="px-4 py-3">Environment</th>
+                        <th class="px-4 py-3">Comment</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y text-center">
+                    @foreach ($tickets as $ticket)
+                        <tr class="text-gray-700">
+                            <td class="px-4 py-3">
+                                {{ $ticket->created_by ?? 'No user assigned' }}
+                            </td>
 
-                        </tr>
-                        <tr class="">
-                            <!-- Table Headers -->
-                            <th scope="col" class="px-6 py-3 text-black">Ticket ID</th>
-                            <th scope="col" class="px-6 py-3 text-black">Trace ID</th>
-                            <th scope="col" class="px-6 py-3 text-black">Provider Name</th>
-                            <th scope="col" class="px-6 py-3 text-black">Issue Category</th>
-                            <th scope="col" class="px-6 py-3 text-black">Issue Description</th>
-                            <th scope="col" class="px-6 py-3 text-black">Assigned To</th>
-                            <th scope="col" class="px-6 py-3 text-black">Priority</th>
-                            <th scope="col" class="px-6 py-3 text-black">Status</th>
-                            <th scope="col" class="px-6 py-3 text-black">Attachment</th>
-                            <th scope="col" class="px-6 py-3 text-black">Created At</th>
-                            <th scope="col" class="px-6 py-3 text-black">Closed At</th>
-                            <th scope="col" class="px-6 py-3 w-[800px] text-black">Comment</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ticketsTable" class="bg-gray-900 divide-y divide-gray-600">
-                        @foreach ($tickets as $ticket)
-                            <tr class="hover:bg-gray-700 transition-colors duration-200">
-                                <form method="POST" action="{{ route('tickets.update', $ticket->id) }}" class="w-full">
-                                    @csrf
-                                    @method('PATCH')
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">{{ $ticket->id }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">{{ $ticket->trace_id }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                        {{ $ticket->provider_name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                        {{ $ticket->issue_category }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                        {{ $ticket->issue_description }}</td>
+                            <td class="px-4 py-3">{{ $ticket->formatted_id }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                @if (!empty($ticket->attachments))
+                                    @foreach (json_decode($ticket->attachments) as $attachment)
                                         @php
-                                        $user = auth()->user();
-                                        $isDisabled = ($user->role == 'operator');
-                                    @endphp
-                                    
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                        <select name="assigned_to"
-                                            class="border-gray-300 text-sm rounded-lg shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                                            {{ $isDisabled ? 'disabled' : '' }}>
-                                            <option value="Dev Team" {{ $ticket->assigned_to == 'Dev Team' ? 'selected' : '' }}>Dev Team
-                                            </option>
-                                            <option value="Wakty Team" {{ $ticket->assigned_to == 'Wakty Team' ? 'selected' : '' }}>Wakty Team
-                                            </option>
-                                        </select>
-                                    </td>
-                                    
+                                            $filename = basename($attachment);
+                                            $traceFilename =
+                                                $ticket->trace_id . '.' . pathinfo($filename, PATHINFO_EXTENSION);
+                                        @endphp
+                                        <a href="{{ route('file.download', ['filename' => $filename]) }}" download
+                                            class="block">{{ $traceFilename }}</a>
+                                    @endforeach
+                                @else
+                                    {{ $ticket->trace_id }}
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-sm">{{ $ticket->provider_name }}</td>
+                            <td class="px-4 py-3 text-sm">{{ $ticket->issue_category }}</td>
+                            <td class="px-4 py-3 text-sm">{{ $ticket->issue_description }}</td>
+                            <td class="py-6 text-sm w-full">
+                                <span class="block w-full rounded-lg px-4 py-2 text-gray-700 bg-white">
+                                    {{ $ticket->assigned_to ?: 'No team assigned' }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm">
+                                <span class="bg-black-200 text-black-700 rounded-lg py-1 px-2">
+                                    {{ ucfirst($ticket->priority) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm">
+                                @if ($ticket->status === 'solved')
+                                    <span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full">
+                                        Solved
+                                     
+                                    </span>
+                                    @if ($ticket->solved_at)
+                                        <span class="text-gray-600">Solved: {{ $ticket->solved_at->format('Y-m-d') }}</span>
+                                    @else
+                                        <span class="text-gray-600">Solved: Not Available</span>
+                                    @endif
+                                @elseif ($ticket->status === 'closed')
+                                    <span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full">
+                                        Closed
+                                    </span>
+                                    @if ($ticket->closed_at)
+                                        <span class="text-gray-600">Closed: {{ $ticket->closed_at->format('Y-m-d') }}</span>
+                                    @else
+                                        <span class="text-gray-600">Closed: Not Available</span>
+                                    @endif
+                                @else
+                                    <span class="px-2 py-1 font-semibold leading-tight text-gray-700 bg-gray-100 rounded-full">
+                                        {{ ucfirst($ticket->status) }}
+                                    </span>
+                                @endif
+                            </td>
+                            
 
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">{{ $ticket->priority }}
-                                    </td>
-                                    <td class="px-8 py-4 whitespace-nowrap text-sm text-black">
-                                        <select name="status"
-                                            class="block w-full border border-gray-600 bg-gray-700 text-black rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
-                                            @if (auth()->user()->role === 'operator')
-                                                <option value="open" {{ $ticket->status == 'open' ? 'selected' : '' }}>
-                                                    Open</option>
-                                                <option value="closed" {{ $ticket->status == 'closed' ? 'selected' : '' }}>
-                                                    Closed</option>
-                                            @else
-                                                <option value="open" {{ $ticket->status == 'open' ? 'selected' : '' }}>
-                                                    Open</option>
-                                                <option value="in progress"
-                                                    {{ $ticket->status == 'in progress' ? 'selected' : '' }}>In Progress
-                                                </option>
-                                                <option value="solved" {{ $ticket->status == 'solved' ? 'selected' : '' }}>
-                                                    Solved</option>
-                                                <option value="done" {{ $ticket->status == 'done' ? 'selected' : '' }}>
-                                                    Done</option>
-                                                <option value="closed" {{ $ticket->status == 'closed' ? 'selected' : '' }}>
-                                                    Closed</option>
-                                            @endif
-                                        </select>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                        @if (!empty($ticket->attachments))
-                                            @foreach (json_decode($ticket->attachments) as $attachment)
-                                                @php
-                                                    $filename = basename($attachment);
-                                                @endphp
-                                                <div>
-                                                    <a href="{{ asset('storage/' . $attachment) }}" download>{{ $filename }}</a>
-                                                </div>
-                                            @endforeach
-                                        @else
-                                            N/A
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                        {{ $ticket->created_at->format('Y-m-d H:i') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                        {{ $ticket->closed_at ? $ticket->closed_at->format('Y-m-d H:i') : 'N/A' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                        <textarea name="comment"
-                                            class="comment-input block w-full border border-gray-600 bg-gray-700 text-black rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out resize-none"
-                                            placeholder="Add a comment">{{ $ticket->comment ?? '' }}</textarea>
-                                        <button type="submit"
-                                            class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg">Save</button>
-                                    </td>
-                                </form>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                            <td class="px-4 py-3 text-sm">
+                                <span class="block w-full bg-white text-black rounded-lg px-4 py-2">
+                                    {{ !empty($ticket->test) ? ucfirst($ticket->test) : '----' }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm">{{ $ticket->environment }}</td>
+                            <td class="py-8 text-sm">
+                                <p class="block p-2.5 w-full text-sm text-gray-900">{{ $ticket->comment ?? 'No comment' }}
+                                </p>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+            <!-- Pagination Links -->
+            <div class="p-4">
+                {{ $tickets->links() }}
             </div>
         </div>
     </div>

@@ -81,11 +81,12 @@
 
 
                                             <!-- Delete User Form -->
+                                            
                                             <form action="{{ route('users.destroy', $user->id) }}" method="POST"
                                                 onsubmit="return confirm('Are you sure you want to delete this user?');">
                                               @csrf
                                               @method('DELETE')
-                                              <button type="submit"
+                                              <button  type="submit"
                                                       class="bg-blue-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition ease-in-out duration-150 flex items-center justify-center">
                                                   <i class="fa-solid fa-trash text-sm text-white hover:text-blue-200"></i>
                                               </button>

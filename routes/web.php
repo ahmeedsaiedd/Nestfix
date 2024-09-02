@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +14,7 @@ use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UserController;
+use App\Models\Category;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,6 +41,7 @@ route::get('redirect', [HomeController::class, 'redirect']);
 Route::get('/home', [AdminController::class, 'index'])->name('admin.home');
 Route::get('/home', [TicketController::class, 'dashboard'])->name('admin.home');
 
+Route::get('download/{filename}', [TicketController::class, 'download'])->name('file.download');
 
 Route::get('/moderator/home', [ModeratorController::class, 'index'])->name('moderator.home');
 
@@ -61,10 +64,52 @@ Route::get('/all-tickets', [TicketController::class, 'all'])->name('all-tickets'
 Route::get('/active-tickets', [TicketController::class, 'active'])->name('active-tickets');
 
 // Route to show the create user form
-Route::get('/create-user', [UserController::class, 'create'])->name('create-user');
-
+Route::get('/create-user', [UserController::class, 'create'])
+    ->name('create-user')
+    ->middleware('check.password');
+// Route::get('/create-user ', [UserController::class, 'create'])->name('create-user');
 // Route to manage users
 Route::get('/manage-users', [UserController::class, 'manage'])->name('manage-users');
+
+// Route::get('/add-category', [CategoryController::class, 'create'])->name('add-category');
+
+// Route::post('/add-category', [CategoryController::class, 'store'])->name('add-category');
+
+// Route::get('/add-category', [CategoryController::class, 'showAddCategoryForm'])->name('admin.add-category');
+// Route::get('/add-category', [TicketController::class, 'create'])->name('add-category');
+
+
+Route::get('/add-ticket', [TicketController::class, 'create'])->name('add-ticket');
+Route::get('/add-category', [CategoryController::class, 'showAddCategoryForm'])->name('showAddCategoryForm');
+
+Route::post('/add-category', [TicketController::class, 'storeCategory'])->name('add-category');
+
+// In your routes/web.php or routes/admin.php file
+Route::get('/notification', [TicketController::class, 'notification'])->name('admin.notification');
+
+Route::get('/all-tickets', [TicketController::class, 'index'])->name('all-tickets');
+
+Route::get('/add-team', [TicketController::class, 'createTeam'])->name('add-team');
+Route::post('/store-team', [TicketController::class, 'storeTeam'])->name('store-team');
+
+
+Route::get('/tickets/{id}', [TicketController::class, 'show']);
+
+Route::get('/download-image/{trace_id}', [TicketController::class, 'downloadImage'])->name('download.image');
+
+
+// Route to handle the "Add Team" form submission
+Route::post('/add-team', [TicketController::class, 'storeTeam'])->name('store-team');
+
+Route::get('/add-status', [TicketController::class, 'showAddStatusForm'])->name('add-status');
+
+// Route to handle the form submission for adding a new status
+Route::post('/add-status', [TicketController::class, 'storeStatus'])->name('store-status');
+
+// Other routes...
+
+
+
 
 // Display the users table
 Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -118,9 +163,10 @@ Route::patch('/tickets/{id}', [TicketController::class, 'update'])->name('ticket
 
 Route::get('/dashboard', [TicketController::class, 'dashboard'])->name('dashboard');
 
-Route::get('/export-tickets', [TicketController::class, 'export'])->name('tickets.export');
+Route::get('/exportfilter', [TicketController::class, 'exportfilter'])->name('exportfilter');
 // routes/web.php
-Route::get('/tickets/export', [ExportController::class, 'exportTickets'])->name('tickets.export');
+Route::get('/export', [ExportController::class, 'exportTickets'])->name('tickets.export');
+
 
 Route::get('/profile', function () {
     return view('admin/profile');
@@ -140,5 +186,38 @@ Route::post('/password/verify', [AdminController::class, 'verifyPassword'])->nam
 // return redirect()->route('admin.notification')->with('admin.notification', session('admin.notification'));
 
 // Route::get('/notify',[\app\http\Controllers\HomeController::class,'notify']);
+
+// Route::post('/validate-admin-password', [AdminController::class, 'validateAdminPassword'])
+//     ->name('validate.admin.password');
+
+Route::delete('/tickets/{id}', [TicketController::class, 'destroy'])->name('tickets.destroy');
+
+Route::get('/add-provider', [AdminController::class, 'createProvider'])->name('add-provider');
+
+// Define the route for storing the new provider
+Route::post('/store-provider', [AdminController::class, 'storeProvider'])->name('store-provider');
+
+Route::post('/confirm-action', [AdminController::class, 'confirmAction'])->name('confirm.action');
+
+// In your web.php routes file
+Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
+Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+Route::get('/categories', [CategoryController::class, 'showAddCategoryForm'])->name('categories.index');
+
+Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('delete-category');
+Route::delete('/providers/{id}', [TicketController::class, 'destroyProvider'])->name('delete-provider');
+Route::delete('/statuses/{id}', [TicketController::class, 'destroystatus'])->name('destroy-status');
+Route::delete('/teams/{id}', [TicketController::class, 'destroyteam'])->name('destroy-team');
+
+Route::get('/search', [AdminController::class, 'search'])->name('search');
+
+Route::get('password/reset/{token}', [UserController::class, 'showResetForm'])
+    ->name('password.reset');
+
+
+
+
+
+
 
 

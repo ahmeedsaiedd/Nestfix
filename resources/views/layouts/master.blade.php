@@ -1,4 +1,3 @@
-
 @include('layouts.head')
 
 <!DOCTYPE html>
@@ -7,7 +6,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>EBE</title>
+    <link rel="icon" href="{{ asset('assets/favicon.png') }}" type="image/png" />
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -17,7 +19,8 @@
 
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('assets/css/tailwind.output.css') }}" />
     <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
     <script src="{{ asset('assets/js/init-alpine.js') }}" defer></script>
@@ -30,7 +33,8 @@
 </head>
 <style>
     .move-up {
-        margin-top: -11px; /* Adjust the value as needed */
+        margin-top: -11px;
+        /* Adjust the value as needed */
         margin-left: 50px;
     }
 </style>
@@ -266,8 +270,10 @@
     .spinner {
         width: 80px;
         height: 80px;
-        border: 8px solid #e5e7eb; /* Light border color */
-        border-top: 8px solid #6366f1; /* Indigo top border */
+        border: 8px solid #e5e7eb;
+        /* Light border color */
+        border-top: 8px solid #6366f1;
+        /* Indigo top border */
         border-radius: 50%;
         animation: spin 1.5s linear infinite;
     }
@@ -277,25 +283,39 @@
         0% {
             transform: rotate(0deg);
         }
+
         100% {
             transform: rotate(360deg);
         }
     }
 </style>
+<style>
+    .wrap-text {
+    word-wrap: break-word; /* Older browsers */
+    overflow-wrap: break-word; /* Modern browsers */
+}
+
+</style>
+
 
 <div class="loader-container" id="spinner-loader">
     <div class="spinner"></div>
 </div>
 
 
-<body :class="{ 'theme-dark': dark }" x-data="data()">
-    <div class="flex h-screen " :class="{ 'overflow-hidden': isSideMenuOpen }">
+<body>
+    <div class="flex h-screen bg-gray-50" :class="{ 'overflow-hidden': isSideMenuOpen }">
         @include('layouts.sidebar')
         <div class="flex flex-col flex-1 w-full">
             @include('layouts.header')
-            @yield('content')
+            <main class="h-full overflow-y-auto"  style="margin-top: 40px !important ">
+                <div class="container px-6 mx-auto grid">
+                    @yield('content')
+                </div>
+            </main>
         </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     @include('layouts.script')

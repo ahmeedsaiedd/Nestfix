@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateProvidersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('ticket_attachments', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('providers', function (Blueprint $table) {
+            $table->id(); // Primary key
+            $table->string('name'); // Provider name
+            $table->timestamps(); // Created_at and updated_at timestamps
         });
     }
 
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('ticket_attachments');
+        Schema::dropIfExists('providers');
     }
-};
+}

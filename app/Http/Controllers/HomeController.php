@@ -17,9 +17,9 @@ class HomeController extends Controller
         if ($role === 'admin') {
             return redirect()->route('admin.home');
         } elseif ($role === 'moderator') {
-            return redirect()->route('moderator.home');
+            return redirect()->route('admin.home');
         } elseif ($role === 'operator') {
-            return redirect()->route('operator.home');
+            return redirect()->route('admin.home');
         } else {
             // Handle unknown roles or unauthenticated users
             return redirect()->route('login'); // Redirect to login or any other route
