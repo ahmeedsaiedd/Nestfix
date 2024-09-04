@@ -223,3 +223,8 @@ toastr.info('Team deletion canceled.', 'Info', {
 }
 }
 </script>
+@if(session('error'))
+<script>
+    alert("{{ session('error') }}");
+</script>
+@endif

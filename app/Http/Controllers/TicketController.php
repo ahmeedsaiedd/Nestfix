@@ -28,18 +28,18 @@ class TicketController extends Controller
     }
 
     public function create()
-{
-    // Fetch all required data
-    $categories = Category::all(); // Fetch categories
-    $teams = Team::all(); // Fetch teams
-    $users = User::all(); // Fetch users
-    $providers = Provider::all(); // Fetch providers
+    {
+        // Fetch all required data
+        $categories = Category::all(); // Fetch categories
+        $teams = Team::all(); // Fetch teams
+        $users = User::all(); // Fetch users
+        $providers = Provider::all(); // Fetch providers
 
-    $environments = ['Staging', 'Pre-production', 'Production', 'Add Provider'];
+        $environments = ['Staging', 'Pre-production', 'Production', 'Add Provider'];
 
-    // Render the 'add-ticket' view with the required data
-    return view('admin.add-ticket', compact('categories', 'teams', 'providers', 'users', 'environments'));
-}
+        // Render the 'add-ticket' view with the required data
+        return view('admin.add-ticket', compact('categories', 'teams', 'providers', 'users', 'environments'));
+    }
 
 
 
@@ -52,20 +52,41 @@ class TicketController extends Controller
 
     // app/Http/Controllers/TicketController.php
 
-    public function active()
-    {
-        // Fetch all tickets where status is not 'closed'
-        $tickets = Ticket::where('status', '<>', 'closed')->get();
+    public function active(Request $request)
+{
+    // Initialize the query
+    $query = Ticket::query();
 
-        // Fetch all teams
-        $teams = Team::all();
-
-        // Fetch all statuses
-        $statuses = Status::all(); // Ensure Status model is correctly referenced
-
-        // Pass tickets, teams, and statuses to the view
-        return view('admin.active-tickets', compact('tickets', 'teams', 'statuses'));
+    // Filter by Trace ID
+    if ($request->filled('trace_id')) {
+        $query->where('trace_id', 'like', '%' . $request->input('trace_id') . '%');
     }
+
+    // Filter by Status
+    if ($request->filled('status')) {
+        $status = $request->input('status');
+        $query->where('status', $status);
+    }
+
+    // Filter tickets that are not 'closed'
+    $query->where('status', '<>', 'closed');
+
+    // Order by the creation date from newest to oldest
+    $query->orderBy('created_at', 'desc');
+
+    // Paginate results, 10 per page
+    $tickets = $query->paginate(10);
+
+    // Fetch all teams
+    $teams = Team::all();
+
+    // Fetch all statuses
+    $statuses = Status::all(); // Ensure Status model is correctly referenced
+
+    // Pass tickets, teams, and statuses to the view
+    return view('admin.active-tickets', compact('tickets', 'teams', 'statuses'));
+}
+
 
 
 
@@ -81,13 +102,13 @@ class TicketController extends Controller
             'status' => 'nullable|string',
             'priority' => 'nullable|string|in:high,medium,low',
             'attachments' => 'nullable|array',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,mp4,avi,doc,docx,xls,xlsx|max:51200', // Updated mime types and size limit
             'environment' => 'nullable|string|in:Staging,Pre-production,Production',
             'created_by' => 'nullable|exists:users,id',
             'comment' => 'nullable|string',
             'test' => 'nullable|string'
         ]);
-    
+
         // Handle file uploads
         $attachments = [];
         if ($request->hasFile('attachments')) {
@@ -96,7 +117,7 @@ class TicketController extends Controller
                 $attachments[] = $path;
             }
         }
-    
+
         // Create a new ticket
         $ticket = Ticket::create([
             'trace_id' => $request->trace_id,
@@ -112,10 +133,10 @@ class TicketController extends Controller
             'attachments' => !empty($attachments) ? json_encode($attachments) : null,
             'test' => $request->test
         ]);
-    
+
         // Send email notification
         Mail::to('ahmeedsaiedd@gmail.com')->send(new TicketCreated($ticket));
-    
+
         return redirect()->back()->with('success', 'Ticket created successfully!');
     }
 
@@ -126,32 +147,101 @@ class TicketController extends Controller
     public function index(Request $request)
     {
         $query = Ticket::query();
-
+        
         // Filter by Trace ID
         if ($request->filled('trace_id')) {
             $query->where('trace_id', 'like', '%' . $request->input('trace_id') . '%');
         }
-
+        
         // Filter by Status
         if ($request->filled('status')) {
             $status = $request->input('status');
             $query->where('status', $status);
         }
-
-        // Paginate results, 4 per page
-        $tickets = $query->paginate(4);
-
+        
+        // Order by creation date from newest to oldest
+        $query->orderBy('created_at', 'desc');
+    
+        // Handle exporting logic
+        if ($request->has('export')) {
+            // Apply the same filters for exporting
+            $tickets = $query->get();
+        
+            // Handle case where there are no tickets to export
+            if ($tickets->isEmpty()) {
+                return redirect()->back()->with('error', 'No tickets to export.');
+            }
+        
+            $headers = [
+                "Content-Type" => "text/csv; charset=utf-8",
+                "Content-Disposition" => "attachment; filename=filtered_tickets.csv",
+                "Pragma" => "no-cache",
+                "Cache-Control" => "private, max-age=0, must-revalidate",
+            ];
+        
+            $callback = function () use ($tickets) {
+                $handle = fopen('php://output', 'w');
+                fwrite($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
+        
+                // Add CSV headers
+                fputcsv($handle, [
+                    'Created By',
+                    'Ticket ID',
+                    'Trace ID',
+                    'Provider Name',
+                    'Issue Category',
+                    'Issue Description',
+                    'Assigned To',
+                    'Priority',
+                    'Status',
+                    'Test',
+                    'Environment',
+                    'Comment',
+                ]);
+        
+                // Add CSV data
+                foreach ($tickets as $ticket) {
+                    $formattedId = 'W-' . $ticket->created_at->format('Ymd') . '-' . str_pad($ticket->id, 3, '0', STR_PAD_LEFT);
+        
+                    fputcsv($handle, [
+                        $ticket->creator->name ?? 'No user assigned',
+                        $formattedId,
+                        $ticket->trace_id,
+                        $ticket->provider_name,
+                        $ticket->issue_category,
+                        $ticket->issue_description,
+                        $ticket->assigned_to ?: 'No team assigned',
+                        ucfirst($ticket->priority),
+                        ucfirst($ticket->status),
+                        !empty($ticket->test) ? ucfirst($ticket->test) : '----',
+                        $ticket->environment,
+                        $ticket->comment ?? 'No comment',
+                    ]);
+                }
+        
+                fclose($handle);
+            };
+        
+            return response()->stream($callback, 200, $headers);
+        }
+        
+        // Paginate results, 10 per page
+        $tickets = $query->paginate(10);
+        
         // Fetch all teams and statuses for filters
         $teams = Team::all();
         $statuses = Status::all();
-
+        
         // Pass the current status filter to the view
         $currentStatus = $request->input('status');
-
+        
         return view('admin.all-tickets', compact('tickets', 'teams', 'statuses', 'currentStatus'));
     }
+    
+    
 
-    public function activeTickets(Request $request)
+
+public function activeTickets(Request $request)
 {
     $query = Ticket::query();
 
@@ -169,6 +259,9 @@ class TicketController extends Controller
         $query->where('status', $status);
     }
 
+    // Order by creation date from newest to oldest
+    $query->orderBy('created_at', 'desc');
+
     // Paginate results, 4 per page
     $tickets = $query->paginate(4);
 
@@ -181,6 +274,7 @@ class TicketController extends Controller
 
     return view('admin.active-tickets', compact('tickets', 'teams', 'statuses', 'currentStatus'));
 }
+
 
 
 
@@ -238,7 +332,7 @@ class TicketController extends Controller
 
             // Handle closed and solved timestamps
             $ticket->closed_at = $request->status === 'closed' ? now() : null;
-            $ticket->solved_at = $request->status === 'solved' ? now() : null;
+            $ticket->solved_at = $request->status === 'Solved' ? now() : null;
 
             // Save the updated ticket
             $ticket->save();
@@ -326,7 +420,8 @@ class TicketController extends Controller
         $ticket->test = $request->input('test');
 
         // Handle solved timestamp
-        $ticket->solved_at = $request->input('status') === 'solved' ? now() : null;
+        $ticket->solved_at = $request->input('status') === 'Solved' ? now() : null;
+        $ticket->closed_at = $request->input('status') === 'Closed' ? now() : null;
 
         // Save the updated ticket
         $ticket->save();
@@ -384,18 +479,18 @@ class TicketController extends Controller
         // Validate the request data
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
-            
+
         ]);
 
         // Create a new category
         Category::create([
             'name' => $request->input('name'),
         ]);
-         $categories = Category::all();
+        $categories = Category::all();
 
-    // Redirect back with a success message
-    return view('admin.add-category', compact('categories'))
-        ->with('success', 'Category added successfully!');
+        // Redirect back with a success message
+        return view('admin.add-category', compact('categories'))
+            ->with('success', 'Category added successfully!');
 
         // Redirect back with a success message
         return redirect()->back()->with('success', 'Category added successfully!');
@@ -462,29 +557,35 @@ class TicketController extends Controller
 
         return redirect()->back()->with('success', 'Status added successfully!');
     }
-    public function exportfilter(Request $request)
+    public function exportActiveTickets(Request $request)
     {
-        $status = $request->query('status');
         $query = Ticket::query();
     
-        if ($status) {
-            $query->where('status', $status);
+        // Exclude tickets with status 'closed'
+        $query->where('status', '!=', 'closed');
+    
+        // Apply the status filter if provided
+        if ($request->has('status') && $request->status !== '') {
+            $query->where('status', $request->status);
         }
     
         $tickets = $query->get();
     
+        // Handle case where there are no tickets to export
+        if ($tickets->isEmpty()) {
+            return redirect()->back()->with('error', 'No active tickets to export.');
+        }
+    
         $headers = [
             "Content-Type" => "text/csv; charset=utf-8",
-            "Content-Disposition" => "attachment; filename=tickets.csv",
+            "Content-Disposition" => "attachment; filename=active_tickets.csv",
             "Pragma" => "no-cache",
             "Cache-Control" => "private, max-age=0, must-revalidate",
         ];
     
         $callback = function () use ($tickets) {
             $handle = fopen('php://output', 'w');
-    
-            // Output UTF-8 BOM for Excel compatibility
-            fwrite($handle, "\xEF\xBB\xBF");
+            fwrite($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
     
             // Add CSV headers
             fputcsv($handle, [
@@ -507,7 +608,7 @@ class TicketController extends Controller
                 $formattedId = 'W-' . $ticket->created_at->format('Ymd') . '-' . str_pad($ticket->id, 3, '0', STR_PAD_LEFT);
     
                 fputcsv($handle, [
-                    $ticket->created_by ?? 'No user assigned',
+                    $ticket->creator->name ?? 'No user assigned',
                     $formattedId,
                     $ticket->trace_id,
                     $ticket->provider_name,
@@ -528,6 +629,72 @@ class TicketController extends Controller
         return response()->stream($callback, 200, $headers);
     }
     
+public function exportAllTickets(Request $request)
+{
+    $query = Ticket::query();
+
+    $tickets = $query->get();
+
+    // Handle case where there are no tickets to export
+    if ($tickets->isEmpty()) {
+        return redirect()->back()->with('error', 'No tickets to export.');
+    }
+
+    $headers = [
+        "Content-Type" => "text/csv; charset=utf-8",
+        "Content-Disposition" => "attachment; filename=all_tickets.csv",
+        "Pragma" => "no-cache",
+        "Cache-Control" => "private, max-age=0, must-revalidate",
+    ];
+
+    $callback = function () use ($tickets) {
+        $handle = fopen('php://output', 'w');
+        fwrite($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
+
+        // Add CSV headers
+        fputcsv($handle, [
+            'Created By',
+            'Ticket ID',
+            'Trace ID',
+            'Provider Name',
+            'Issue Category',
+            'Issue Description',
+            'Assigned To',
+            'Priority',
+            'Status',
+            'Test',
+            'Environment',
+            'Comment',
+        ]);
+
+        // Add CSV data
+        foreach ($tickets as $ticket) {
+            $formattedId = 'W-' . $ticket->created_at->format('Ymd') . '-' . str_pad($ticket->id, 3, '0', STR_PAD_LEFT);
+
+            fputcsv($handle, [
+                $ticket->creator->name ?? 'No user assigned',
+                $formattedId,
+                $ticket->trace_id,
+                $ticket->provider_name,
+                $ticket->issue_category,
+                $ticket->issue_description,
+                $ticket->assigned_to ?: 'No team assigned',
+                ucfirst($ticket->priority),
+                ucfirst($ticket->status),
+                !empty($ticket->test) ? ucfirst($ticket->test) : '----',
+                $ticket->environment,
+                $ticket->comment ?? 'No comment',
+            ]);
+        }
+
+        fclose($handle);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
+
+
+
 
     public function showCategories()
     {
@@ -561,8 +728,8 @@ class TicketController extends Controller
         // Redirect back with a success message
         return redirect()->back()->with('status', 'Team deleted successfully!');
     }
-    
-    
+
+
 
 
 

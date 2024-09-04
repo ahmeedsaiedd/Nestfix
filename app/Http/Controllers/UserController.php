@@ -76,8 +76,13 @@ class UserController extends Controller
     // Delete a user
     public function destroy(User $user)
     {
+        if ($user->id === auth()->id()) {
+            return redirect()->route('users.index')->with('error', 'You cannot delete your own account.');
+        }
+    
         $user->delete();
-        return redirect()->route('manage-users')->with('success', 'User deleted successfully.');
+    
+        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
     }
 
     // Display the form to reset a user's password

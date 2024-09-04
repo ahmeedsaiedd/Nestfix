@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>EBE</title>
+
     <link rel="icon" href="{{ asset('assets/favicon.png') }}" type="image/png" />
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -38,6 +39,14 @@
         margin-left: 50px;
     }
 </style>
+<style>
+    /* Custom style for making the dropdown scrollable */
+    #provider_name {
+        max-height: 200px; /* Adjust height as needed */
+        overflow-y: auto;  /* Enable vertical scrolling */
+    }
+</style>
+
 <style>
     /* form-styles.css */
 

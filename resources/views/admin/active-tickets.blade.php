@@ -20,35 +20,46 @@
 
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Filter</button>
                 <button type="button" class="px-4 py-2 bg-blue-300 text-black rounded-lg"
-                    onclick="window.location='{{ route('all-tickets') }}';">Reset</button>
+                    onclick="window.location='{{ route('active-tickets') }}';">Reset</button>
             </form>
+
 
             <!-- Export Form, pushed to the right -->
             <div class="ml-auto">
-                <form method="GET" action="{{ route('exportfilter') }}" class="flex space-x-4 items-center">
+                <form method="GET" action="{{ route('export.active.tickets') }}" class="flex items-center space-x-4">
+                    <!-- Pass current filter status and trace_id -->
+                    <input type="hidden" name="trace_id" value="{{ request('trace_id') }}">
+                    <input type="hidden" name="status" value="{{ request('status') }}">
+
                     @if ($statuses->isEmpty())
                         <p class="text-red-500 font-semibold">No data to export</p>
                     @else
-                        <select name="status" id="export_status"
+                        <select name="status" id="export_status" hidden
                             class="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">All Statuses</option>
                             @foreach ($statuses as $status)
-                                <option value="{{ $status->name }}">{{ ucfirst($status->name) }}</option>
+                                <option value="{{ $status->name }}"
+                                    {{ request('status') === $status->name ? 'selected' : '' }}>
+                                    {{ ucfirst($status->name) }}
+                                </option>
                             @endforeach
                         </select>
                         <button type="submit"
-                            class="px-4 py-2 bg-blue-700 text-black rounded-lg shadow-lg hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            Export CSV
+                            class="flex items-center justify-center px-4 py-2 text-black rounded-full shadow-lg transform hover:scale-105 hover:bg-gray-800 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            <span>Export</span>
+                            <i class="fa-solid fa-file-export text-lg ml-2"></i> <!-- Margin-left added to create space -->
                         </button>
                     @endif
                 </form>
+
             </div>
+
         </div>
 
         <div class="w-full overflow-x-auto">
             <table class="w-full whitespace-no-wrap">
                 <thead>
-                    <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b bg-gray-50">
+                    <tr class="text-xs font-semibold tracking-wide text-center text-gray-500 uppercase border-b bg-gray-50">
                         <th class="px-4 py-3">Created By</th>
                         <th class="px-4 py-3">Ticket ID</th>
                         <th class="px-4 py-3">Trace ID</th>
@@ -65,14 +76,14 @@
                         <th class="px-4 py-3">delete</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y">
+                <tbody class="bg-white divide-y text-center">
                     @foreach ($tickets as $ticket)
                         <form method="POST" action="{{ route('tickets.update', $ticket->id) }}" class="w-full">
                             @csrf
                             @method('PATCH')
                             <tr class="bg-white text-gray-700">
-                                <td class="px-4 py-3">
-                                    {{ $ticket->created_by ?? 'No user assigned' }}
+                                <td class="px-4 py-3 text-sm">
+                                    {{ $ticket->creator ? $ticket->creator->name : 'No user assigned' }}
                                 </td>
 
                                 <td class="px-4 py-3">{{ $ticket->formatted_id }}</td>
@@ -84,13 +95,21 @@
                                                 $traceFilename =
                                                     $ticket->trace_id . '.' . pathinfo($filename, PATHINFO_EXTENSION);
                                             @endphp
-                                            <a href="{{ route('file.download', ['filename' => $filename]) }}" download
-                                                class="block">{{ $traceFilename }}</a>
+                                            <div class="flex items-center space-x-2">
+                                                <!-- Font Awesome attachment icon -->
+                                                <i class="fas fa-paperclip text-gray-500"></i>
+                                                <!-- File link -->
+                                                <a href="{{ route('file.download', ['filename' => $filename]) }}" download
+                                                    class="text-blue-600 hover:underline">
+                                                    {{ $traceFilename }}
+                                                </a>
+                                            </div>
                                         @endforeach
                                     @else
                                         {{ $ticket->trace_id }}
                                     @endif
                                 </td>
+
                                 <td class="px-4 py-3 text-sm">{{ $ticket->provider_name }}</td>
                                 <td class="px-4 py-3 text-sm">{{ $ticket->issue_category }}</td>
                                 <td class="px-4 py-3 text-sm">{{ $ticket->issue_description }}</td>
@@ -105,7 +124,9 @@
                                             {{ $ticket->assigned_to ?: 'No team assigned' }}
                                         </span>
                                     @else
-                                        <select id="assigned_to" name="assigned_to" class="" required>
+                                        <select id="assigned_to" name="assigned_to"
+                                            class="block w-full border border-gray-300 bg-white text-gray-900 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2"
+                                            required>
                                             <option value="" disabled>Select a team</option>
                                             @foreach ($teams as $team)
                                                 <option value="{{ $team->name }}"
@@ -116,9 +137,11 @@
                                         </select>
                                     @endif
                                 </td>
+
                                 {{-- <td class="px-4 py-3 text-sm">{{ $ticket->priority }}</td> --}}
-                                <td class="py-6 text-sm w-full ">
-                                    <select name="priority" class="">
+                                <td class="py-6 text-sm w-full">
+                                    <select name="priority"
+                                        class="block w-full border border-gray-300 bg-white text-gray-900 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2">
                                         <option value="high" {{ $ticket->priority == 'high' ? 'selected' : '' }}>High
                                         </option>
                                         <option value="medium" {{ $ticket->priority == 'medium' ? 'selected' : '' }}>Medium
@@ -127,8 +150,10 @@
                                         </option>
                                     </select>
                                 </td>
+
                                 <td class="py-6 text-sm w-full">
-                                    <select id="status-select" name="status" class="">
+                                    <select id="status-select" name="status"
+                                        class="block w-full border border-gray-300 bg-white text-gray-900 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-1">
                                         @if (auth()->user()->role === 'operator')
                                             <option value="open" {{ $ticket->status === 'open' ? 'selected' : '' }}>Open
                                             </option>
@@ -143,23 +168,11 @@
                                             @endforeach
                                         @endif
                                     </select>
+                                </td>
 
-                                    <!-- Display solved_at or closed_at date based on the status -->
-                                    @if ($ticket->status === 'solved')
-                                        @if ($ticket->solved_at)
-                                            <span class="text-gray-600">Solved:
-                                                {{ $ticket->solved_at->format('Y-m-d') }}</span>
-                                        @else
-                                            <span class="text-gray-600">Solved: Not Available</span>
-                                        @endif
-                                    @elseif ($ticket->status === 'closed')
-                                        @if ($ticket->closed_at)
-                                            <span class="text-gray-600">Closed:
-                                                {{ $ticket->closed_at->format('Y-m-d') }}</span>
-                                        @else
-                                            <span class="text-gray-600">Closed: Not Available</span>
-                                        @endif
-                                    @endif
+
+                                <!-- Display solved_at or closed_at date based on the status -->
+
                                 </td>
                                 <td class="px-16 py-3 text-sm">
                                     @php

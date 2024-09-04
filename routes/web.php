@@ -58,13 +58,15 @@ Route::get('/add-ticket', [TicketController::class, 'create'])->name('add-ticket
 Route::post('/ticket/store', [TicketController::class, 'store'])->name('ticket.store');
 
 // Route for displaying all tickets
-Route::get('/all-tickets', [TicketController::class, 'all'])->name('all-tickets');
+// Route::get('/all-tickets', [TicketController::class, 'all'])->name('all-tickets');
+Route::get('/admin/all-tickets', [TicketController::class, 'index'])->name('admin.all-tickets');
+
 
 // Route for displaying active tickets
 Route::get('/active-tickets', [TicketController::class, 'active'])->name('active-tickets');
 
 // Route to show the create user form
-Route::get('/create-user', [UserController::class, 'create'])
+Route::get('/admin.create-user', [UserController::class, 'create'])
     ->name('create-user')
     ->middleware('check.password');
 // Route::get('/create-user ', [UserController::class, 'create'])->name('create-user');
@@ -166,6 +168,10 @@ Route::get('/dashboard', [TicketController::class, 'dashboard'])->name('dashboar
 Route::get('/exportfilter', [TicketController::class, 'exportfilter'])->name('exportfilter');
 // routes/web.php
 Route::get('/export', [ExportController::class, 'exportTickets'])->name('tickets.export');
+// routes/web.php
+Route::get('/export-active-tickets', [TicketController::class, 'exportActiveTickets'])->name('export.active.tickets');
+Route::get('/export-all-tickets', [TicketController::class, 'exportAllTickets'])->name('export.all.tickets');
+
 
 
 Route::get('/profile', function () {
@@ -215,9 +221,14 @@ Route::get('password/reset/{token}', [UserController::class, 'showResetForm'])
     ->name('password.reset');
 
 
+Route::get('/register', [AdminController::class, 'showRegistrationForm'])
+    ->middleware('check.admin.password');
 
+Route::post('/register', [AdminController::class, 'register'])
+    ->middleware('check.admin.password');
 
+Route::get('/create-user', [AdminController::class, 'create'])
+    ->middleware('check.admin.password');
 
-
-
-
+Route::post('/create-user', [AdminController::class, 'store'])
+    ->middleware('check.admin.password');

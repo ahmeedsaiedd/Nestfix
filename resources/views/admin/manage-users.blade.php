@@ -82,15 +82,23 @@
 
                                             <!-- Delete User Form -->
                                             
-                                            <form action="{{ route('users.destroy', $user->id) }}" method="POST"
-                                                onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                              @csrf
-                                              @method('DELETE')
-                                              <button  type="submit"
-                                                      class="bg-blue-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition ease-in-out duration-150 flex items-center justify-center">
-                                                  <i class="fa-solid fa-trash text-sm text-white hover:text-blue-200"></i>
-                                              </button>
-                                          </form>
+                                            <!-- Delete User Form -->
+                                        @if ($user->id !== auth()->id() && $user->role !== auth()->user()->role)
+                                        <form id="delete-form-{{ $user->id }}" action="{{ route('users.destroy', $user->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button
+                                                type="button"
+                                                onclick="confirmDeletion({{ $user->id }})"
+                                                class="bg-blue-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition ease-in-out duration-150 flex items-center justify-center"
+                                            >
+                                                <i class="fa-solid fa-trash text-sm text-white hover:text-blue-200"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                       
+                                    @endif
+                                </div>
                                           
                                         </div>
 
@@ -146,4 +154,22 @@
                     </table>
                 </div>
             </div>
+            <script>
+                function confirmDeletion(userId) {
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('delete-form-' + userId).submit();
+                        }
+                    });
+                }
+            </script>
         @endsection

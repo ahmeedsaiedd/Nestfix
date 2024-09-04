@@ -29,7 +29,7 @@
                 <div>
                     <label for="provider_name" class="block text-sm font-semibold text-gray-700">Provider Name</label>
                     <select id="provider_name" name="provider_name"
-                        class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-2"
+                        class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-2 overflow-auto"
                         required>
                         <option value="" disabled selected>Select a provider</option>
                         @foreach ($providers as $provider)
@@ -37,6 +37,7 @@
                         @endforeach
                     </select>
                 </div>
+                
                 
 
                 <!-- Issue Category Field -->
