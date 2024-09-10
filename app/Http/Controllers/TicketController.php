@@ -135,7 +135,7 @@ class TicketController extends Controller
         ]);
 
         // Send email notification
-        Mail::to('ahmeedsaiedd@gmail.com')->send(new TicketCreated($ticket));
+        Mail::to('Wakty.ticketing@ebetech.com.eg')->send(new TicketCreated($ticket));
 
         return redirect()->back()->with('success', 'Ticket created successfully!');
     }
@@ -549,7 +549,6 @@ public function activeTickets(Request $request)
         $request->validate([
             'status_name' => 'required|string|unique:statuses,name', // Add 'statuses' model and table for storing status names
         ]);
-
         // Create a new status
         Status::create([
             'name' => $request->status_name,

@@ -13,5 +13,5 @@ class Status extends Model
     protected $table = 'statuses'; 
 
     // Define the fillable attributes
-    protected $fillable = ['status_name'];
+    protected $fillable = ['name'];
 }

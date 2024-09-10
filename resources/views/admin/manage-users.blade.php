@@ -1,4 +1,4 @@
-    @extends('layouts.master')
+@extends('layouts.master')
 
     @section('content')
         <div class="p-6">
@@ -30,7 +30,7 @@
                                 <th class="px-4 py-3 text-gray-500 text-sm sm:text-base">Email</th>
                                 <th class="px-4 py-3 text-gray-500 text-sm sm:text-base">Role</th>
                                 <th class="px-4 py-3 text-gray-500 text-sm sm:text-base">Change Role</th>
-                                <th class="px-4 py-3 text-gray-500 text-sm sm:text-base">Actions</th>
+                                {{-- <th class="px-4 py-3 text-gray-500 text-sm sm:text-base">Actions</th> --}}
                             </tr>
                         </thead>
                         <tbody>
@@ -45,131 +45,135 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        <div class="flex items-center space-x-4">
+                                            <div class="flex items-end space-x-4">
+
                                             <!-- Change Role Form -->
-                                            <form action="{{ route('users.changeRole', $user->id) }}" method="POST"
-                                                x-data="{ role: '{{ $user->role }}' }" class="flex items-center">
+                                            <form action="{{ route('users.changeRole', $user->id) }}" method="POST" x-data="{ role: '{{ $user->role }}' }" class="flex items-center">
                                                 @csrf
                                                 @method('PUT')
-                                                <select name="role" x-model="role"
-                                                    class="border border-gray-300 rounded-md p-2 text-sm">
-                                                    <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin
-                                                    </option>
-                                                    <option value="moderator"
-                                                        {{ $user->role == 'moderator' ? 'selected' : '' }}>Moderator</option>
-                                                    <option value="operator" {{ $user->role == 'operator' ? 'selected' : '' }}>
-                                                        Operator</option>
+                                                <select name="role" x-model="role" class="border border-gray-300 rounded-md p-2 text-sm">
+                                                    @if ($user->role == 'admin')
+                                                        <!-- Only show 'Admin' option if the user's role is admin -->
+                                                        <option value="admin" selected>Admin</option>
+                                                    @else
+                                                        <!-- Show all roles if the user is not an admin -->
+                                                        <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
+                                                        <option value="moderator" {{ $user->role == 'moderator' ? 'selected' : '' }}>Moderator</option>
+                                                        <option value="operator" {{ $user->role == 'operator' ? 'selected' : '' }}>Operator</option>
+                                                    @endif
                                                 </select>
-                                                <button type="submit"
-                                                    class="ml-2 flex items-center bg-blue-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition ease-in-out duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50">
+                                                <button
+                                                    type="submit"
+                                                    class="ml-2 flex items-center bg-blue-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition ease-in-out duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50"
+                                                    title="Change Role"
+                                                >
                                                     <i class="fas fa-exchange-alt text-lg"></i>
                                                 </button>
-
                                             </form>
+                                            
+
 
                                             <!-- Reset Password Button -->
                                             <form>
                                                 <button type="button"
                                                     class="openModalButton bg-blue-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition ease-in-out duration-150"
-                                                    data-user-id="{{ $user->id }}"
-                                                    aria-label="Open Modal">
+                                                    data-user-id="{{ $user->id }}" aria-label="Open Modal"
+                                                    title="Reset Password"> <!-- Tooltip -->
                                                     <i class="fa-solid fa-key text-lg"></i>
                                                 </button>
                                             </form>
-                                            
+
+
 
 
 
                                             <!-- Delete User Form -->
-                                            
-                                            <!-- Delete User Form -->
-                                        @if ($user->id !== auth()->id() && $user->role !== auth()->user()->role)
-                                        <form id="delete-form-{{ $user->id }}" action="{{ route('users.destroy', $user->id) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button
-                                                type="button"
-                                                onclick="confirmDeletion({{ $user->id }})"
-                                                class="bg-blue-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition ease-in-out duration-150 flex items-center justify-center"
-                                            >
-                                                <i class="fa-solid fa-trash text-sm text-white hover:text-blue-200"></i>
-                                            </button>
-                                        </form>
-                                    @else
-                                       
-                                    @endif
-                                </div>
-                                          
-                                        </div>
 
-                                        <!-- Password Reset Modal (hidden by default) -->
-                                        <div id="passwordResetModal"
-                                            class="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center hidden">
-                                            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm relative">
-                                                <button id="closeModalButton"
-                                                    class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                                        viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
+                                            <!-- Delete User Form -->
+
+                                            <form id="delete-form-{{ $user->id }}"
+                                                action="{{ route('users.destroy', $user->id) }}" method="POST">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" onclick="confirmDeletion({{ $user->id }})"
+                                                    aria-label="Delete User" title="Delete User"
+                                                    class="bg-blue-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition ease-in-out duration-150 flex items-center justify-center">
+
+
+                                                    <i class="fa-solid fa-trash text-sm text-white hover:text-blue-200"></i>
                                                 </button>
-
-                                                <!-- Password Reset Form -->
-                                                <form id="passwordResetForm" action="{{ route('users.updatePassword') }}"
-                                                    method="POST" class="flex flex-col items-center">
-                                                    @csrf
-                                                    <input type="hidden" id="userId" name="user_id" value="">
-                                                    <!-- New Password Field -->
-                                                    <div class="mb-4">
-                                                        <label for="password"
-                                                            class="block text-sm font-medium text-gray-700">New Password</label>
-                                                        <input id="password" name="password" type="password" required
-                                                            class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
-                                                    </div>
-
-                                                    <!-- Confirm Password Field -->
-                                                    <div class="mb-4">
-                                                        <label for="password_confirmation"
-                                                            class="block text-sm font-medium text-gray-700">Confirm
-                                                            Password</label>
-                                                        <input id="password_confirmation" name="password_confirmation"
-                                                            type="password" required
-                                                            class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
-                                                    </div>
-
-                                                    <button type="submit"
-                                                        class="bg-blue-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition ease-in-out duration-150">
-                                                        Reset Password
-                                                    </button>
-                                                </form>
-                                            </div>
+                                            </form>
                                         </div>
-                                    </td>
+
+                                        <div id="passwordResetModal"
+                                        class="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center hidden">
+                                        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm relative">
+                                            <button id="closeModalButton" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                    
+                                            <!-- Password Reset Form -->
+                                            <form id="passwordResetForm" action="{{ route('users.updatePassword') }}" method="POST"
+                                                class="flex flex-col items-center">
+                                                @csrf
+                                                <input type="hidden" id="userId" name="user_id" value="">
+                                                <!-- New Password Field -->
+                                                <div class="mb-4">
+                                                    <label for="password" class="block text-sm font-medium text-gray-700">New Password</label>
+                                                    <input id="password" name="password" type="password" required
+                                                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                                                </div>
+                    
+                                                <!-- Confirm Password Field -->
+                                                <div class="mb-4">
+                                                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm
+                                                        Password</label>
+                                                    <input id="password_confirmation" name="password_confirmation" type="password" required
+                                                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                                                </div>
+                    
+                                                <button type="submit"
+                                                    class="bg-blue-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition ease-in-out duration-150">
+                                                    Reset Password
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                   
+                                   
+                                    </td> </div>
+
+                <!-- Password Reset Modal (hidden by default) -->
+              
+                </td>
 
 
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                </tr>
+                @endforeach
+                </tbody>
+                </table>
             </div>
-            <script>
-                function confirmDeletion(userId) {
-                    Swal.fire({
-                        title: 'Are you sure?',
-                        text: "You won't be able to revert this!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, delete it!',
-                        cancelButtonText: 'Cancel'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            document.getElementById('delete-form-' + userId).submit();
-                        }
-                    });
-                }
-            </script>
-        @endsection
+        </div>
+        <script>
+            function confirmDeletion(userId) {
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('delete-form-' + userId).submit();
+                    }
+                });
+            }
+        </script>
+    @endsection

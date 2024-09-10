@@ -50,7 +50,7 @@
                 @foreach($categories as $category)
                     <option value="{{ $category->name }}">{{ $category->name }}</option>
                 @endforeach
-                <option value="others">Other</option>
+                
             </select>
                     <input type="text" id="new_category" name="new_category"
                         class="mt-2 block w-full border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-2 hidden"

@@ -76,5 +76,7 @@ public function createProvider()
         // Redirect or return response
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
+
+    
    
 }    
